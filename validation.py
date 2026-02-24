@@ -37,9 +37,11 @@ NAME_ALLOWED_RE = re.compile(r"")    # allowed name characters
 # =============================
 
 def normalize_basic(value: str) -> str:
+
     """
     Normalize input using NFKC and strip whitespace.
     """
+
     return unicodedata.normalize("NFKC", (value or "")).strip()
 
 
@@ -90,6 +92,10 @@ def validate_card_number(card_number: str) -> Tuple[str, str]:
 
 
 def validate_exp_date(exp_date: str) -> Tuple[str, str]:
+
+    # Format MM/YY
+
+
     """
     Validate expiration date.
 
@@ -105,6 +111,26 @@ def validate_exp_date(exp_date: str) -> Tuple[str, str]:
     Returns:
         (normalized_exp_date, error_message)
     """
+    if not exp_date:
+        return "", "Expiration date is required"
+    
+    exp_date = exp_date.strip()
+
+    #Fomat check
+    if not re.fullmatch(r"\d{2}/\d{2}", exp_date):
+        return "", "Expiration date must be in MM/YY format"
+    
+    #month betwen 01 and 12
+    month, year = exp_date.split("/")
+    if not (1 <= int(month) <= 12):
+        return "", "Expiration month must be between 01 and 12"
+    
+    #Must not be expired compared to current UTC date
+    current_year = datetime.utcnow().year % 100  # Get last two digits of current year
+    current_month = datetime.utcnow().month
+    if int(year) < current_year or (int(year) == current_year and int(month) < current_month):
+        return "", "Card is expired"
+    
     # TODO: Implement validation
     return "", ""
 
