@@ -63,11 +63,23 @@ def decrypt_aes(texto_cifrado_hex, nonce_hex, tag_hex, clave):
 
     # TODO: Implementar conversión de hex a bytes
 
+    texto_bytes = bytes.fromhex(texto_cifrado_hex)
+    nonce_bytes = bytes.fromhex(nonce_hex)
+    tag_bytes = bytes.fromhex(tag_hex)
+
     # TODO: Crear objeto AES con nonce
+
+    cipher = AES.new(clave, AES.MODE_EAX, nonce=nonce_bytes)
 
     # TODO: Usar decrypt_and_verify
 
+    text = cipher.decrypt_and_verify(texto_bytes, tag_bytes)
+
     # TODO: Convertir resultado a string y retornar
+
+    text = text.decode()
+    
+    return text
 
     pass
 
@@ -159,6 +171,8 @@ if __name__ == "__main__":
     # texto_descifrado = decrypt_aes(texto_cifrado, nonce, tag, clave)
     # print("Texto descifrado:", texto_descifrado)
 
+    texto_descifrado = decrypt_aes(texto_cifrado, nonce, tag, clave)
+    print("Texto descifrado:", texto_descifrado)
 
     print("\n=== PRUEBA HASH ===")
 
