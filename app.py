@@ -508,10 +508,9 @@ def profile():
         current_password = request.form.get("current_password", "")
         new_password = request.form.get("new_password", "")
         confirm_new_password = request.form.get("confirm_new_password", "")
-        # Validaciones: aplicar las mismas reglas que en registro
+
         field_errors = {}
 
-        # Nombre
         if not full_name.strip():
             field_errors["full_name"] = "Full name is required."
         elif len(full_name) < 2 or len(full_name) > 60:
@@ -523,24 +522,21 @@ def profile():
             else:
                 full_name = normalized_name
 
-        # Teléfono
-        if not phone:
+        if not phone.strip().lower():
             field_errors["phone"] = "Phone number is required."
         elif not re.match(r"^\d{7,15}$", phone):
             field_errors["phone"] = "Phone number must contain only digits and be 7-15 characters long."
 
-        # Cambio de contraseña (opcional)
         if new_password:
-            # Debe proveer la contraseña actual
             if not current_password:
                 field_errors["current_password"] = "Current password is required to change your password."
+            elif current_password == new_password:
+                field_errors["new_password"] = "The new password must be different from the current password."
             else:
-                # Verificar que la contraseña actual concuerde con la almacenada
                 stored_pw = user.get("password", "")
                 if current_password != stored_pw:
                     field_errors["current_password"] = "Current password is incorrect."
 
-            # Validar nueva contraseña
             if "new_password" not in field_errors:
                 if len(new_password) < 8 or len(new_password) > 64:
                     field_errors["new_password"] = "Password must be between 8 and 64 characters."
@@ -553,7 +549,6 @@ def profile():
                 elif new_password != confirm_new_password:
                     field_errors["confirm_new_password"] = "Passwords do not match."
 
-        # Si hay errores, no persistir y devolver la plantilla con errores
         if field_errors:
             form["full_name"] = full_name
             form["phone"] = phone

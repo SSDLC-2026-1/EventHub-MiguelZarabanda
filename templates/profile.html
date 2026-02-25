@@ -65,7 +65,10 @@
                 <div class="auth-input">
                 <span class="auth-icon">🔑</span>
                 <input id="current_password" name="current_password" type="password" placeholder="••••••••">
-                </div>
+                {% if field_errors.get('current_password') %}
+                  <div class="field-error">⛔ {{ field_errors.get('current_password') }}</div>
+                {% endif %}
+              </div>
             </div>
 
             <div>
@@ -73,7 +76,10 @@
                 <div class="auth-input">
                 <span class="auth-icon">🆕</span>
                 <input id="new_password" name="new_password" type="password" placeholder="••••••••">
-                </div>
+                {% if field_errors.get('new_password') %}
+                  <div class="field-error">⛔ {{ field_errors.get('new_password') }}</div>
+                {% endif %}
+              </div>
             </div>
 
             <div>
@@ -81,7 +87,10 @@
                 <div class="auth-input">
                 <span class="auth-icon">✅</span>
                 <input id="confirm_new_password" name="confirm_new_password" type="password" placeholder="••••••••">
-                </div>
+                {% if field_errors.get('confirm_new_password') %}
+                  <div class="field-error">⛔ {{ field_errors.get('confirm_new_password') }}</div>
+                {% endif %}
+              </div>
             </div>
             </div>
 
@@ -90,9 +99,6 @@
             <button class="btn btn-primary" type="submit">Save Changes</button>
             </div>
         </form>
-        {% if success_message %}
-        <div class="profile-success">{{ success_message }}</div>
-        {% endif %}
       </div>
 
 
