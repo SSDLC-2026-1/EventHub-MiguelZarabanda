@@ -1,11 +1,11 @@
 from __future__ import annotations
-
 from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Optional, Dict
 
 from flask import Flask, render_template, request, abort, url_for, redirect, session
 from pathlib import Path
+import time 
 import json
 
 from validation import validate_payment_form
@@ -22,6 +22,9 @@ ORDERS_PATH = BASE_DIR / "data" / "orders.json"
 CATEGORIES = ["All", "Music", "Tech", "Sports", "Business"]
 CITIES = ["Any", "New York", "San Francisco", "Berlin", "London", "Oakland", "San Jose"]
 
+Max_attempts = 3
+Lock_time = 300
+user_attempts = {}
 
 @dataclass(frozen=True)
 class Event:
@@ -251,6 +254,13 @@ def login():
     if not password.strip():
         field_errors["password"] = "Password is required."
 
+    now = time.time()
+    
+
+    if email in user_attempts and user_attempts[email].get("locked_until", 0) > now:   
+        remaining = int(user_attempts[email].get('locked_until', 0) - now)
+        field_errors["email"] = f"Account is temporarily locked due to multiple failed login attempts. Please try again later. Remaining time: {remaining} seconds."
+
     if field_errors:
         return render_template(
             "login.html",
@@ -261,6 +271,12 @@ def login():
 
     user = find_user_by_email(email)
     if not user or user.get("password") != password:
+        if user: 
+            if email not in user_attempts:
+                user_attempts[email] = {"attempts": 0, "locked_until": 0}
+            user_attempts[email]["attempts"] += 1
+            if user_attempts[email]["attempts"] >= Max_attempts:
+                user_attempts[email]["locked_until"] = now + Lock_time
         return render_template(
             "login.html",
             error="Invalid credentials.",
@@ -268,6 +284,7 @@ def login():
             form={"email": email},
         ), 401
 
+    user_attempts[email] = {"attempts": 0, "locked_until": 0}
     session["user_email"] = (user.get("email") or "").strip().lower()
 
     return redirect(url_for("dashboard"))
@@ -506,3 +523,10 @@ def admin_change_role(user_id: int):
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+
+
+
+
+
