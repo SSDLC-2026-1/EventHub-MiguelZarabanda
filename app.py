@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import List, Optional, Dict
 
 from flask import Flask, render_template, request, abort, url_for, redirect, session
+from functools import wraps
 from pathlib import Path
 import time 
 import json
@@ -52,6 +53,29 @@ def get_current_user() -> Optional[dict]:
     if not email:
         return None
     return find_user_by_email(email)
+
+
+def require_login(roles: Optional[List[str]] = None):
+
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            user = get_current_user()
+            if not user:
+                session.clear()
+                return redirect(url_for("login"))
+
+            if roles:
+                user_role = (user.get("role") or "user").strip().lower()
+                allowed = [r.strip().lower() for r in roles]
+                if user_role not in allowed:
+                    abort(403)
+
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
 
 
 
@@ -324,14 +348,14 @@ def register():
     return redirect(url_for("login", registered="1"))
 
 @app.get("/dashboard")
+@require_login()
 def dashboard():
-
-
     paid = request.args.get("paid") == "1"
     user = get_current_user()
     return render_template("dashboard.html", user_name=(user.get("full_name") if user else "User"), paid=paid)
 
 @app.route("/checkout/<int:event_id>", methods=["GET", "POST"])
+@require_login()
 def checkout(event_id: int):
 
 
@@ -411,13 +435,10 @@ def checkout(event_id: int):
 
 
 @app.route("/profile", methods=["GET", "POST"])
+@require_login()
 def profile():
- 
 
     user = get_current_user()
-    if not user:
-        session.clear()
-        return redirect(url_for("login"))
 
     form = {
         "full_name": user.get("full_name", ""),
@@ -461,6 +482,7 @@ def profile():
         success_message=success_msg,
     )
 @app.get("/admin/users")
+@require_login(roles=["admin"])
 def admin_users():
 
     q = (request.args.get("q") or "").strip().lower()
@@ -520,6 +542,7 @@ def admin_change_role(user_id: int):
             break
     save_users(users)
     return redirect(url_for("admin_users"))
+
 
 if __name__ == "__main__":
     app.run(debug=True)
