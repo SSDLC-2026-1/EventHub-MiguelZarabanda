@@ -391,6 +391,8 @@ def register():
         "email": email,
         "phone": phone,
         "password": password,  # In production, hash this!
+        "role": "user",
+        "status": "active",
     }
     users.append(new_user)
     save_users(users)

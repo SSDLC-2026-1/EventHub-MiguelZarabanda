@@ -22,6 +22,8 @@
     "full_name": "Bob",
     "email": "test@test.com",
     "phone": "32132132",
-    "password": "Hola_mund0"
+    "password": "Hola_mund0",
+    "role": "user",
+    "status": "active"
   }
 ]
