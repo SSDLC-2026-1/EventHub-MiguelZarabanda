@@ -508,7 +508,64 @@ def profile():
         current_password = request.form.get("current_password", "")
         new_password = request.form.get("new_password", "")
         confirm_new_password = request.form.get("confirm_new_password", "")
+        # Validaciones: aplicar las mismas reglas que en registro
+        field_errors = {}
 
+        # Nombre
+        if not full_name.strip():
+            field_errors["full_name"] = "Full name is required."
+        elif len(full_name) < 2 or len(full_name) > 60:
+            field_errors["full_name"] = "Full name must be between 2 and 60 characters."
+        else:
+            normalized_name = re.sub(r'\s+', ' ', full_name).strip()
+            if not re.match(r"^[a-zA-ZÀ-ÿ\s'-]+$", normalized_name):
+                field_errors["full_name"] = "Full name can only contain letters, spaces, apostrophes, and hyphens."
+            else:
+                full_name = normalized_name
+
+        # Teléfono
+        if not phone:
+            field_errors["phone"] = "Phone number is required."
+        elif not re.match(r"^\d{7,15}$", phone):
+            field_errors["phone"] = "Phone number must contain only digits and be 7-15 characters long."
+
+        # Cambio de contraseña (opcional)
+        if new_password:
+            # Debe proveer la contraseña actual
+            if not current_password:
+                field_errors["current_password"] = "Current password is required to change your password."
+            else:
+                # Verificar que la contraseña actual concuerde con la almacenada
+                stored_pw = user.get("password", "")
+                if current_password != stored_pw:
+                    field_errors["current_password"] = "Current password is incorrect."
+
+            # Validar nueva contraseña
+            if "new_password" not in field_errors:
+                if len(new_password) < 8 or len(new_password) > 64:
+                    field_errors["new_password"] = "Password must be between 8 and 64 characters."
+                elif " " in new_password:
+                    field_errors["new_password"] = "Password cannot contain spaces."
+                elif new_password == (user.get("email") or ""):
+                    field_errors["new_password"] = "Password cannot be the same as your email."
+                elif not re.match(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-\=\+\[\]{}<>?]).+$", new_password):
+                    field_errors["new_password"] = "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (!@#$%^&*()_-+=[]{}<>?)."
+                elif new_password != confirm_new_password:
+                    field_errors["confirm_new_password"] = "Passwords do not match."
+
+        # Si hay errores, no persistir y devolver la plantilla con errores
+        if field_errors:
+            form["full_name"] = full_name
+            form["phone"] = phone
+            field_errors_local = field_errors
+            return render_template(
+                "profile.html",
+                form=form,
+                field_errors=field_errors_local,
+                success_message=None,
+            ), 400
+
+        # Persistir cambios solo si todo es válido
         users = load_users()
         email_norm = (user.get("email") or "").strip().lower()
 
@@ -516,7 +573,6 @@ def profile():
             if (u.get("email") or "").strip().lower() == email_norm:
                 u["full_name"] = full_name
                 u["phone"] = phone
-
                 if new_password:
                     u["password"] = new_password
                 break
