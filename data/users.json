@@ -1,14 +1,14 @@
 [
   {
     "id": 1,
-    "full_name": "sara",
+    "full_name": "Sara",
     "email": "test@tes.com",
     "phone": "3001111112",
     "password": "aaa114",
     "role": "admin",
     "status": "active"
   },
-    {
+  {
     "id": 2,
     "full_name": "pepito",
     "email": "test3@tes.com",
@@ -16,5 +16,12 @@
     "password": "aaa114",
     "role": "user",
     "status": "active"
+  },
+  {
+    "id": 3,
+    "full_name": "Bob",
+    "email": "test@test.com",
+    "phone": "32132132",
+    "password": "Hola_mund0"
   }
 ]

@@ -1,6 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
+import re
 from typing import List, Optional, Dict
 
 from flask import Flask, render_template, request, abort, url_for, redirect, session
@@ -326,7 +327,7 @@ def login():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "GET":
-        return render_template("register.html")
+        return render_template("register.html", form={})
 
     full_name = request.form.get("full_name", "")
     email = request.form.get("email", "")
@@ -334,25 +335,64 @@ def register():
     password = request.form.get("password", "")
     confirm_password = request.form.get("confirm_password", "")
 
-    if user_exists(email):
+    field_errors = {}
+
+    if not full_name.strip():
+        field_errors["full_name"] = "Full name is required."
+    elif len(full_name) < 2 or len(full_name) > 60:
+        field_errors["full_name"] = "Full name must be between 2 and 60 characters."
+    else: 
+        normalized_name = re.sub(r'\s+', ' ', full_name)  # Collapse multiple spaces
+        if not re.match(r"^[a-zA-ZÀ-ÿ\s'-]+$", normalized_name):
+            field_errors["full_name"] = "Full name can only contain letters, spaces, apostrophes, and hyphens."
+        else:
+            full_name = normalized_name
+            
+    if not email:
+        field_errors["email"] = "Email is required."
+    elif len(email) > 254:
+        field_errors["email"] = "Email must be 254 characters or less."
+    elif not re.match(r"^[^@]+@[^@]+\.[^@]+$", email):  # Basic format: one @, domain with .
+        field_errors["email"] = "Email must be in a valid format (e.g., user@example.com)."
+    elif user_exists(email):
+        field_errors["email"] = "An account with this email already exists."
+
+    if not phone:
+        field_errors["phone"] = "Phone number is required."
+    elif not re.match(r"^\d{7,15}$", phone):  # Only digits, 7-15 length
+        field_errors["phone"] = "Phone number must contain only digits and be 7-15 characters long."
+
+    if not password:
+        field_errors["password"] = "Password is required."
+    elif len(password) < 8 or len(password) > 64:
+        field_errors["password"] = "Password must be between 8 and 64 characters."
+    elif " " in password:
+        field_errors["password"] = "Password cannot contain spaces."
+    elif password == email:
+        field_errors["password"] = "Password cannot be the same as your email."
+    elif not re.match(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-=\+\[\]{}<>?]).+$", password):
+        field_errors["password"] = "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (!@#$%^&*()_-+=[]{}<>?)."
+    elif password != confirm_password:
+        field_errors["confirm_password"] = "Passwords do not match."
+
+    if field_errors:
         return render_template(
             "register.html",
-            error="This email is already registered. Try signing in."
+            error="Please fix the highlighted fields.",
+            field_errors=field_errors,
+            form={"full_name": full_name, "email": email, "phone": phone},
         ), 400
 
-    users = load_users()
-    next_id = (max([u.get("id", 0) for u in users], default=0) + 1)
 
-    users.append({
-        "id": next_id,
+    users = load_users()
+    new_user = {
+        "id": len(users) + 1,
         "full_name": full_name,
         "email": email,
         "phone": phone,
-        "password": password,
-        "role": "user",          
-        "status": "active",
-    })
-
+        "password": password,  # In production, hash this!
+    }
+    users.append(new_user)
     save_users(users)
 
     return redirect(url_for("login", registered="1"))
@@ -553,11 +593,13 @@ def admin_change_role(user_id: int):
     save_users(users)
     return redirect(url_for("admin_users"))
 
+@app.route("/logout")
+def logout():
+    session.clear()  # Limpia toda la sesión
+    return redirect(url_for("index"))
 
 if __name__ == "__main__":
     app.run(debug=True)
-
-
 
 
 
