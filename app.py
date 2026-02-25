@@ -78,6 +78,16 @@ def require_login(roles: Optional[List[str]] = None):
     return decorator
 
 
+@app.context_processor
+def inject_user():
+    """Hacer el  `current_user` y `is_admin` disponible en todas las plantillas."""
+    user = get_current_user()
+    is_admin = False
+    if user:
+        is_admin = (user.get("role") or "user").strip().lower() == "admin"
+    return {"current_user": user, "is_admin": is_admin}
+
+
 
 def load_events() -> List[Event]:
     data = json.loads(EVENTS_PATH.read_text(encoding="utf-8"))
