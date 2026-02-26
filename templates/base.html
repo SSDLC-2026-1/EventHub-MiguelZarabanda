@@ -28,6 +28,7 @@
 
       {% if current_user %}
         <a class="btn btn-ghost" href="{{ url_for('profile') }}">My Profile</a>
+        <a href="{{ url_for('logout') }}" class="btn btn-secondary">Logout</a>
         {% if is_admin %}
           <a class="btn btn-ghost" href="{{ url_for('admin_users') }}">Admin Panel</a>
         {% endif %}

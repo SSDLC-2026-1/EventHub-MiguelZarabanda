@@ -11,6 +11,8 @@ import time
 import json
 
 from validation import validate_payment_form
+from encryption import verify_password
+from encryption import hash_password
 
 app = Flask(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
@@ -282,17 +284,16 @@ def login():
     email = request.form.get("email", "")
     password = request.form.get("password", "")
 
+    from validation import validate_billing_email
     field_errors = {}
-
-    if not email.strip():
-        field_errors["email"] = "Email is required."
+    email_clean, email_err = validate_billing_email(email)
+    if email_err:
+        field_errors["email"] = email_err
     if not password.strip():
         field_errors["password"] = "Password is required."
 
     now = time.time()
-    
-
-    if email in user_attempts and user_attempts[email].get("locked_until", 0) > now:   
+    if email in user_attempts and user_attempts[email].get("locked_until", 0) > now:
         remaining = int(user_attempts[email].get('locked_until', 0) - now)
         field_errors["email"] = f"Account is temporarily locked due to multiple failed login attempts. Please try again later. Remaining time: {remaining} seconds."
 
@@ -304,9 +305,9 @@ def login():
             form={"email": email},
         ), 400
 
-    user = find_user_by_email(email)
+    user = find_user_by_email(email_clean)
     if not user or user.get("password") != password:
-        if user: 
+        if user:
             if email not in user_attempts:
                 user_attempts[email] = {"attempts": 0, "locked_until": 0}
             user_attempts[email]["attempts"] += 1
@@ -320,8 +321,7 @@ def login():
         ), 401
 
     user_attempts[email] = {"attempts": 0, "locked_until": 0}
-    session["user_email"] = (user.get("email") or "").strip().lower()
-
+    session["user_email"] = email_clean
     return redirect(url_for("dashboard"))
 
 @app.route("/register", methods=["GET", "POST"])
@@ -385,12 +385,13 @@ def register():
 
 
     users = load_users()
+    hashed_pwd = hash_password(password)
     new_user = {
         "id": len(users) + 1,
         "full_name": full_name,
         "email": email,
         "phone": phone,
-        "password": password,  # In production, hash this!
+        "password": hashed_pwd,  # Guardar el dict generado
         "role": "user",
         "status": "active",
     }
@@ -650,6 +651,22 @@ def admin_change_role(user_id: int):
 def logout():
     session.clear()  # Limpia toda la sesión
     return redirect(url_for("index"))
+
+def password_encryption(password: str) -> dict:
+    
+    password_byters = password.encode()
+    cipher = AES.new(get_random_bytes(16), AES.MODE_GCM)
+    nonce = cipher.nonce
+    ciphertext, tag = cipher.encrypt_and_digest(password_byters)
+
+    return {
+        "ciphertext": ciphertext.hex(),
+        "nonce": nonce.hex(),
+        "tag": tag.hex()
+    }
+
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)
