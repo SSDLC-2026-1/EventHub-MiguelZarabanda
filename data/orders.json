@@ -13,9 +13,12 @@
     "payment": {
       "card_number": "000000000000000000000",
       "exp_date": "09/23",
-      "cvv": "123",
       "name_on_card": "pepito",
-      "billing_email": "test@tes.com"
+      "billing_email": {
+        "ciphertext": "ade69eab3fff71e3593daa77",
+        "nonce": "f02f33f8d400296e820f5ade29c85a50",
+        "tag": "1da927df96e74dba887c7c2da2a92766"
+      }
     }
   },
   {
@@ -32,8 +35,30 @@
     "payment": {
       "exp_date": "12/29",
       "name_on_card": "Juan Perez",
-      "billing_email": "ohn.doe@example.com",
+      "billing_email": {
+        "ciphertext": "4d8f1119f4dc7780e12a7f547b92f0c431664b",
+        "nonce": "61806a67904bf3e969d8257f2139e590",
+        "tag": "81b819a6e59f8395dc937f801b84c1e4"
+      },
       "card": ""
+    }
+  },
+  {
+    "id": 3,
+    "user_email": "carlos@gmail.com",
+    "event_id": 9,
+    "event_title": "Champions League Final Viewing",
+    "qty": 1,
+    "unit_price": 65.0,
+    "service_fee": 5.0,
+    "total": 70.0,
+    "status": "PAID",
+    "created_at": "2026-03-02T00:53:06.703275",
+    "payment": {
+      "exp_date": "12/30",
+      "name_on_card": "Carlos",
+      "billing_email": "carlos@gmail.com",
+      "card": "0000000000000000"
     }
   }
 ]

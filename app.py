@@ -11,14 +11,18 @@ import time
 import json
 
 from validation import validate_payment_form
-from encryption import verify_password
-from encryption import hash_password
+from Encryption import verify_password
+from Encryption import hash_password
+from Encryption import encrypt_aes
+from Encryption import decrypt_aes
+from Crypto.Random import get_random_bytes
+import hashlib
 
 app = Flask(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.secret_key = "dev-secret-change-me"
 
-
+AES_KEY = hashlib.sha256(b"EventHub-Secret-Key-2026").digest()
 BASE_DIR = Path(__file__).resolve().parent
 EVENTS_PATH = BASE_DIR / "data" / "events.json"
 USERS_PATH = BASE_DIR / "data" / "users.json"
@@ -26,7 +30,7 @@ ORDERS_PATH = BASE_DIR / "data" / "orders.json"
 CATEGORIES = ["All", "Music", "Tech", "Sports", "Business"]
 CITIES = ["Any", "New York", "San Francisco", "Berlin", "London", "Oakland", "San Jose"]
 
-Max_attempts = 3
+Max_attempts = 2
 Lock_time = 300
 user_attempts = {}
 
@@ -306,7 +310,17 @@ def login():
         ), 400
 
     user = find_user_by_email(email_clean)
-    if not user or user.get("password") != password:
+
+    password_valid = False
+    if user:
+        stored_pwd = user.get("password")
+        if isinstance(stored_pwd, dict):
+            password_valid = verify_password(password, stored_pwd)
+
+        else:
+            password_valid = (stored_pwd == password)
+            
+    if not user or not password_valid:
         if user:
             if email not in user_attempts:
                 user_attempts[email] = {"attempts": 0, "locked_until": 0}
@@ -383,15 +397,22 @@ def register():
             form={"full_name": full_name, "email": email, "phone": phone},
         ), 400
 
+    hashed_pwd = hash_password(password)
+    phone_encrypted, phone_nonce, phone_tag = encrypt_aes(phone, AES_KEY)
+
+    encrypted_phone_data = {
+        "ciphertext": phone_encrypted,
+        "nonce": phone_nonce,
+        "tag": phone_tag
+    }
 
     users = load_users()
-    hashed_pwd = hash_password(password)
     new_user = {
         "id": len(users) + 1,
         "full_name": full_name,
         "email": email,
-        "phone": phone,
-        "password": hashed_pwd,  # Guardar el dict generado
+        "phone": encrypted_phone_data,
+        "password": hashed_pwd,  
         "role": "user",
         "status": "active",
     }
@@ -410,7 +431,6 @@ def dashboard():
 @app.route("/checkout/<int:event_id>", methods=["GET", "POST"])
 @require_login()
 def checkout(event_id: int):
-
 
     events = load_events()
     event = next((e for e in events if e.id == event_id), None)
@@ -464,12 +484,31 @@ def checkout(event_id: int):
             errors=errors, form_data=form_data
         ), 400
 
+    billing_email_clean = clean.get("billing_email", "")
+    email_encrypted, email_nonce, email_tag = encrypt_aes(billing_email_clean, AES_KEY)
+
+    encrypted_email_data = {
+        "ciphertext": email_encrypted,
+        "nonce": email_nonce,
+        "tag": email_tag,
+    }   
+
     orders = load_orders()
     order_id = next_order_id(orders)
 
+    current_user = get_current_user()
+    user_email = current_user.get("email") if current_user else ""
+
+    payment_data = {
+        "exp_date": clean.get("exp_date", ""),
+        "name_on_card": clean.get("name_on_card", ""),
+        "billing_email": encrypted_email_data,  
+        "card_last4": clean.get("card", "")[-4:] if clean.get("card") else ""
+    }
+
     orders.append({
         "id": order_id,
-        "user_email": "PLACEHOLDER@EMAIL.COM",
+        "user_email": user_email,
         "event_id": event.id,
         "event_title": event.title,
         "qty": qty,
@@ -478,7 +517,7 @@ def checkout(event_id: int):
         "total": total,
         "status": "PAID",
         "created_at": datetime.utcnow().isoformat(),
-        "payment": form_data
+        "payment": payment_data
     })
 
     save_orders(orders)
@@ -493,10 +532,28 @@ def profile():
 
     user = get_current_user()
 
+    phone_display = ""
+    phone_data = user.get("phone", "")
+
+    if isinstance(phone_data, dict):
+        try:
+            phone_display = decrypt_aes(
+                phone_data.get("ciphertext", ""),
+                AES_KEY,
+                phone_data.get("nonce", ""),
+                phone_data.get("tag", "")
+            )
+        except Exception as e:
+            phone_display = "Error decrypting phone number"
+    elif isinstance(phone_data, str):
+        phone_display = "Encrypted phone data in unexpected format"
+    else:
+        phone_display = "No phone data available"
+
     form = {
         "full_name": user.get("full_name", ""),
         "email": user.get("email", ""),
-        "phone": user.get("phone", ""),
+        "phone": phone_display,
     }
 
     field_errors = {}  
@@ -535,7 +592,12 @@ def profile():
                 field_errors["new_password"] = "The new password must be different from the current password."
             else:
                 stored_pw = user.get("password", "")
-                if current_password != stored_pw:
+                password_valid = False
+                if isinstance(stored_pw, dict):
+                    password_valid = verify_password(current_password, stored_pw)
+                else:                    
+                    password_valid = (stored_pw == current_password)
+                if not password_valid:
                     field_errors["current_password"] = "Current password is incorrect."
 
             if "new_password" not in field_errors:
@@ -561,7 +623,13 @@ def profile():
                 success_message=None,
             ), 400
 
-        # Persistir cambios solo si todo es válido
+        phone_encrypted, phone_nonce, phone_tag = encrypt_aes(phone, AES_KEY)
+        encrypted_phone_data = {
+            "ciphertext": phone_encrypted,
+            "nonce": phone_nonce,
+            "tag": phone_tag,       
+        }
+
         users = load_users()
         email_norm = (user.get("email") or "").strip().lower()
 
@@ -570,7 +638,7 @@ def profile():
                 u["full_name"] = full_name
                 u["phone"] = phone
                 if new_password:
-                    u["password"] = new_password
+                    u["password"] = hash_password(new_password)
                 break
 
         save_users(users)
@@ -651,22 +719,6 @@ def admin_change_role(user_id: int):
 def logout():
     session.clear()  # Limpia toda la sesión
     return redirect(url_for("index"))
-
-def password_encryption(password: str) -> dict:
-    
-    password_byters = password.encode()
-    cipher = AES.new(get_random_bytes(16), AES.MODE_GCM)
-    nonce = cipher.nonce
-    ciphertext, tag = cipher.encrypt_and_digest(password_byters)
-
-    return {
-        "ciphertext": ciphertext.hex(),
-        "nonce": nonce.hex(),
-        "tag": tag.hex()
-    }
-
-
-
 
 if __name__ == "__main__":
     app.run(debug=True)

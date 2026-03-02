@@ -3,8 +3,17 @@
     "id": 1,
     "full_name": "Sara",
     "email": "test@tes.com",
-    "phone": "321321321",
-    "password": "Hola_mund0",
+    "phone": {
+      "ciphertext": "c3e571ee0faa67eb58",
+      "nonce": "c62d170b644930a53f65a5fec2667654",
+      "tag": "024527ded727b86990df0f63a8f5e6e3"
+    },
+    "password": {
+      "algorithm": "pbkdf2_sha256",
+      "iterations": 200000,
+      "salt": "d96bd9a22d49796ba338aa2e44f2f912",
+      "hash": "2f5559619027cc787285b106389024d1952e3d5be5680a242730f424e4fb84eb"
+    },
     "role": "admin",
     "status": "active"
   },
@@ -12,8 +21,17 @@
     "id": 2,
     "full_name": "pepe perez",
     "email": "test3@tes.com",
-    "phone": "3001231232",
-    "password": "Currentpswd123!",
+    "phone": {
+      "ciphertext": "30a1b0b3b8009da56372",
+      "nonce": "998929f0ddac06487242bc5772a08701",
+      "tag": "5b49272c7d31813645487668c70227de"
+    },
+    "password": {
+      "algorithm": "pbkdf2_sha256",
+      "iterations": 200000,
+      "salt": "6add5d61d211ee31f9f07ffeb3bd81c4",
+      "hash": "ca19d006cebbed6581e8712a6f1821389a7d1622dba6f28adb2842ac7a0c70a9"
+    },
     "role": "user",
     "status": "active"
   },
@@ -21,8 +39,53 @@
     "id": 3,
     "full_name": "Bob",
     "email": "test@test.com",
-    "phone": "32132132",
-    "password": "Hola_mund0",
+    "phone": {
+      "ciphertext": "4e31f697a81916dd",
+      "nonce": "19883a8dbbcda070f92528290355137b",
+      "tag": "b3f76e444d274fcc543c04ec16d34e02"
+    },
+    "password": {
+      "algorithm": "pbkdf2_sha256",
+      "iterations": 200000,
+      "salt": "03dc79538ae6dcd346e67fdbf6d6405c",
+      "hash": "c5d3a7350c8731392542d137237cd1434775d3b052ceb3a05ed0ddc088615f84"
+    },
+    "role": "user",
+    "status": "active"
+  },
+  {
+    "id": 4,
+    "full_name": "Jorge",
+    "email": "jor@gmail.com",
+    "phone": {
+      "ciphertext": "05bbf9be94b394f408",
+      "nonce": "976f31fddb8aa0405340afb199490fbc",
+      "tag": "b4c7112c957b005862a5b2b13501425c"
+    },
+    "password": {
+      "algorithm": "pbkdf2_sha256",
+      "iterations": 200000,
+      "salt": "eacb8c754849d926340f448d44fbe0c0",
+      "hash": "b49bd69d70f793c9bf27670161beef2258bf465def519f98da3b5e385fb8c6ef"
+    },
+    "role": "user",
+    "status": "active"
+  },
+  {
+    "id": 5,
+    "full_name": "Carlos",
+    "email": "carlos@gmail.com",
+    "phone": {
+      "ciphertext": "3d3fcd8e2346ff709b",
+      "nonce": "301cc86aaa37fb48e6506875197290c6",
+      "tag": "0bf1a43670bb5c5f3fe22baeabb8cb13"
+    },
+    "password": {
+      "algorithm": "pbkdf2_sha256",
+      "iterations": 200000,
+      "salt": "08756649948656baae07bca1f9466a0f",
+      "hash": "5433fc17fa14cb3dbafcd3024d1c69079e2238bf8da068aa221774775a6f8d99"
+    },
     "role": "user",
     "status": "active"
   }
