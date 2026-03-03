@@ -32,6 +32,7 @@ CITIES = ["Any", "New York", "San Francisco", "Berlin", "London", "Oakland", "Sa
 
 Max_attempts = 2
 Lock_time = 300
+SESSION_TIMEOUT_SECONDS = 180
 user_attempts = {}
 
 @dataclass(frozen=True)
@@ -69,6 +70,22 @@ def require_login(roles: Optional[List[str]] = None):
         def wrapper(*args, **kwargs):
             user = get_current_user()
             if not user:
+                session.clear()
+                return redirect(url_for("login"))
+
+            login_at = session.get("login_at")
+            now = time.time()
+            if login_at is None:
+                session.clear()
+                return redirect(url_for("login"))
+
+            try:
+                login_at = float(login_at)
+            except (TypeError, ValueError):
+                session.clear()
+                return redirect(url_for("login"))
+
+            if now - login_at > SESSION_TIMEOUT_SECONDS:
                 session.clear()
                 return redirect(url_for("login"))
 
@@ -336,6 +353,7 @@ def login():
 
     user_attempts[email] = {"attempts": 0, "locked_until": 0}
     session["user_email"] = email_clean
+    session["login_at"] = time.time()
     return redirect(url_for("dashboard"))
 
 @app.route("/register", methods=["GET", "POST"])
@@ -499,11 +517,16 @@ def checkout(event_id: int):
     current_user = get_current_user()
     user_email = current_user.get("email") if current_user else ""
 
+    card_digits = clean.get("card", "")
+    card_last4 = card_digits[-4:] if card_digits else ""
+    card_masked = f"**** **** **** {card_last4}" if card_last4 else ""
+
+
     payment_data = {
         "exp_date": clean.get("exp_date", ""),
         "name_on_card": clean.get("name_on_card", ""),
         "billing_email": encrypted_email_data,  
-        "card_last4": clean.get("card", "")[-4:] if clean.get("card") else ""
+        "card_masked": card_masked,
     }
 
     orders.append({
