@@ -1,20 +1,78 @@
 [
   {
     "id": 1,
-    "full_name": "sara",
+    "full_name": "Sara",
     "email": "test@tes.com",
-    "phone": "3001111112",
-    "password": "aaa114",
+    "phone_encrypted": {
+      "ciphertext": "7d6f9e51c720c05cb57c",
+      "nonce": "a0bd1c54c9834dc292ba3888320f8d85",
+      "tag": "7d2bc2673b60cff9cb5987bcf068f0db"
+    },
+    "password_data": {
+      "algorithm": "pbkdf2_sha256",
+      "iterations": 310000,
+      "salt": "VdR3dP0Izk8lCq0tK80faA==",
+      "hash": "6wlR73Qf8u5T6NE9LJcpCVU9+47W0A6f0f3DywTIGjo="
+    },
     "role": "admin",
-    "status": "active"
+    "status": "active",
+    "locked_until": ""
   },
-    {
+  {
     "id": 2,
-    "full_name": "pepito",
+    "full_name": "Pepito",
     "email": "test3@tes.com",
-    "phone": "3001111112",
-    "password": "aaa114",
+    "phone_encrypted": {
+      "ciphertext": "7d6f9e51c720c05cb57c",
+      "nonce": "66fbda868e78ac3235972da273585732",
+      "tag": "5866178d22f80f5332e44fd62e2a24a9"
+    },
+    "password_data": {
+      "algorithm": "pbkdf2_sha256",
+      "iterations": 310000,
+      "salt": "Cq8iQQQkguS9J3P2uqn86A==",
+      "hash": "xOgkDrUN+4Qx9QhIOcqUCRW7t0LxrPqH37Vt1gK5rJE="
+    },
     "role": "user",
-    "status": "active"
+    "status": "active",
+    "locked_until": ""
+  },
+  {
+    "id": 3,
+    "full_name": "Juan Perez",
+    "email": "lab1@test.com",
+    "phone_encrypted": {
+      "ciphertext": "10a8db125c0bb643f29b",
+      "nonce": "ba404992032283b24b8fd3647221bfd5",
+      "tag": "371fdf006d70e3b26eaed13cf9592322"
+    },
+    "password_data": {
+      "algorithm": "pbkdf2_sha256",
+      "iterations": 310000,
+      "salt": "oYAM15strkZjy3K5t3pRUA==",
+      "hash": "nIiZV+sBSA7O6Mtpzf/VblsnThj+q6dp4X5jTgtBHGE="
+    },
+    "role": "admin",
+    "status": "active",
+    "locked_until": ""
+  },
+  {
+    "id": 4,
+    "full_name": "Sofia",
+    "email": "sofia.doe@gmail.com",
+    "phone_encrypted": {
+      "ciphertext": "b7068c5d82fbb96e97a5",
+      "nonce": "dff054efccf5f66762e16454f24245b9",
+      "tag": "4d1c6893d67fc9982faf2a5d24abbd91"
+    },
+    "password_data": {
+      "algorithm": "pbkdf2_sha256",
+      "iterations": 310000,
+      "salt": "v53TCA1miVVmUMWsQ2y9Ww==",
+      "hash": "ug0qWFcJw1yYXxQGjHjyMEKdcaZSh55tx19IQvcT42s="
+    },
+    "role": "user",
+    "status": "active",
+    "locked_until": ""
   }
 ]

@@ -17,56 +17,62 @@
       <div class="auth-banner auth-banner-ok">{{ demo_message }}</div>
     {% endif %}
     {% if error %}
-        <div class="auth-banner auth-banner-error">{{ error }}</div>
+      <div class="auth-banner auth-banner-error">{{ error }}</div>
     {% endif %}
 
     <form class="auth-form" method="post" action="{{ url_for('register') }}">
       <label class="auth-label" for="full_name">Full Name</label>
-      <div class="auth-input">
+      <div class="auth-input {% if field_errors.get('full_name') %}has-error{% endif %}">
         <span class="auth-icon">👤</span>
-        <input id="full_name" name="full_name" type="text" placeholder="John Doe" />
+        <input id="full_name" name="full_name" type="text" placeholder="John Doe" value="{{ form.get('full_name','') }}" />
       </div>
+      {% if field_errors.get('full_name') %}<div class="auth-help auth-help-error">{{ field_errors.get('full_name') }}</div>{% endif %}
 
       <label class="auth-label" for="email">Email</label>
-      <div class="auth-input">
+      <div class="auth-input {% if field_errors.get('email') %}has-error{% endif %}">
         <span class="auth-icon">✉️</span>
-        <input id="email" name="email" type="email" placeholder="john.doe@example.com" />
+        <input id="email" name="email" type="email" placeholder="john.doe@example.com" value="{{ form.get('email','') }}" />
       </div>
+      {% if field_errors.get('email') %}<div class="auth-help auth-help-error">{{ field_errors.get('email') }}</div>{% endif %}
 
       <label class="auth-label" for="phone">Phone Number</label>
-      <div class="auth-input">
+      <div class="auth-input {% if field_errors.get('phone') %}has-error{% endif %}">
         <span class="auth-icon">📞</span>
-        <input id="phone" name="phone" type="tel" placeholder="(+1) 555-123-4567" />
+        <input id="phone" name="phone" type="tel" placeholder="3001234567" value="{{ form.get('phone','') }}" />
       </div>
+      {% if field_errors.get('phone') %}<div class="auth-help auth-help-error">{{ field_errors.get('phone') }}</div>{% endif %}
 
       <label class="auth-label" for="password">Password</label>
-      <div class="auth-input">
+      <div class="auth-input {% if field_errors.get('password') %}has-error{% endif %}">
         <span class="auth-icon">🔒</span>
         <input id="password" name="password" type="password" placeholder="••••••••" />
         <span class="auth-eye">👁️</span>
       </div>
+      {% if field_errors.get('password') %}<div class="auth-help auth-help-error">{{ field_errors.get('password') }}</div>{% endif %}
 
       <label class="auth-label" for="confirm_password">Confirm Password</label>
-      <div class="auth-input">
+      <div class="auth-input {% if field_errors.get('confirm_password') %}has-error{% endif %}">
         <span class="auth-icon">🔒</span>
         <input id="confirm_password" name="confirm_password" type="password" placeholder="••••••••" />
         <span class="auth-eye">👁️</span>
       </div>
+      {% if field_errors.get('confirm_password') %}<div class="auth-help auth-help-error">{{ field_errors.get('confirm_password') }}</div>{% endif %}
 
       <div class="auth-rules">
         <div class="auth-rules-title">Password must:</div>
         <ul class="auth-rules-list muted small">
-          <li>?</li>
-          <li>?</li>
-          <li>?</li>
-          <li>?</li>
+          <li>Be 8-64 characters long</li>
+          <li>Include uppercase, lowercase, number, and special character</li>
+          <li>Contain no spaces</li>
+          <li>Be different from your email</li>
         </ul>
       </div>
 
       <label class="auth-check auth-check-terms">
-        <input type="checkbox" name="agree" />
+        <input type="checkbox" name="agree" {% if form.get('agree') %}checked{% endif %} />
         <span>I agree to <a class="auth-link" href="#">Terms &amp; Privacy</a></span>
       </label>
+      {% if field_errors.get('agree') %}<div class="auth-help auth-help-error">{{ field_errors.get('agree') }}</div>{% endif %}
 
       <button class="btn btn-primary btn-full" type="submit">Create Account</button>
 

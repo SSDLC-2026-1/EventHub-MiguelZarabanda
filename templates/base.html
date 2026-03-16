@@ -19,6 +19,9 @@
     <nav class="navlinks">
       <a href="{{ url_for('index') }}">Explore</a>
       <a href="{{ url_for('index', category='Tech') }}">Categories</a>
+      {% if is_admin %}
+        <a href="{{ url_for('admin_users') }}">Admin Panel</a>
+      {% endif %}
     </nav>
 
     <div class="top-actions">
@@ -26,8 +29,10 @@
         <input name="q" value="{{ request.args.get('q','') }}" placeholder="Search events..." />
       </form>
 
-      {% if session.get("user_email") %}
+      {% if is_authenticated %}
+        <a class="btn btn-ghost" href="{{ url_for('dashboard') }}">Dashboard</a>
         <a class="btn btn-ghost" href="{{ url_for('profile') }}">My Profile</a>
+        <a class="btn btn-primary" href="{{ url_for('logout') }}">Logout</a>
       {% else %}
         <a class="btn btn-ghost" href="{{ url_for('login') }}">Login</a>
         <a class="btn btn-primary" href="{{ url_for('register') }}">Register</a>

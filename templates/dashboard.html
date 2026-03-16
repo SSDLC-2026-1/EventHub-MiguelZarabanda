@@ -5,10 +5,43 @@
 <section class="section">
   <div class="container">
     <h1>Welcome back, {{ user_name }}</h1>
-    <p class="muted">This is a simple dashboard placeholder.</p>
-  </div>
-  {% if paid %}
-  <div class="auth-banner auth-banner-ok">Payment completed (demo). Order stored in orders.json.</div>
+    <p class="muted">Review your recent purchases and manage your account securely.</p>
+
+    {% if paid %}
+      <div class="auth-banner auth-banner-ok">Payment completed. Order stored securely in orders.json.</div>
     {% endif %}
+
+    <div class="panel" style="margin-top: 20px;">
+      <h3>My Tickets</h3>
+      {% if orders %}
+        <table class="users-table">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Event</th>
+              <th>Qty</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for o in orders %}
+              <tr>
+                <td>#{{ o.id }}</td>
+                <td>{{ o.event_title }}</td>
+                <td>{{ o.qty }}</td>
+                <td>${{ '%.2f'|format(o.total) }}</td>
+                <td>{{ o.status }}</td>
+                <td>{{ o.created_at }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="muted">No purchases yet. Browse events and complete your first checkout.</div>
+      {% endif %}
+    </div>
+  </div>
 </section>
 {% endblock %}
