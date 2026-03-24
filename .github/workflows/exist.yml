@@ -36,3 +36,40 @@ jobs:
             exit 1
           fi
           echo "requirements.txt exists"
+
+      - name: Validate templates/, static/, data/ directories exist
+        run: |
+          for dir in templates static data; do
+            if [ ! -d "$dir" ]; then
+              echo "Error: $dir/ directory not found"
+              exit 1
+            fi
+            echo "$dir/ directory exists"
+          fi
+
+      - name : Validate data/users.json JSON structure valid
+        run: |
+          if [ ! -f "data/users.json" ]; then
+            echo "Error: data/users.json not found"
+            exit 1
+          fi
+          python -m json.tool data/users.json > /dev/null
+          echo "data/users.json is valid JSON"
+
+      - name: Validate data/events.json JSON structure valid
+        run: |
+          if [ ! -f "data/events.json" ]; then
+            echo "Error: data/events.json not found"
+            exit 1
+          fi
+          python -m json.tool data/events.json > /dev/null
+          echo "data/events.json is valid JSON"
+
+      - name: Validate data/orders.json JSON structure valid
+        run: |
+          if [ ! -f "data/orders.json" ]; then
+            echo "Error: data/orders.json not found"
+            exit 1
+          fi
+          python -m json.tool data/orders.json > /dev/null
+          echo "data/orders.json is valid JSON"
