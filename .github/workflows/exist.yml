@@ -45,7 +45,7 @@ jobs:
               exit 1
             fi
             echo "$dir/ directory exists"
-          fi
+          done
 
       - name : Validate data/users.json JSON structure valid
         run: |
