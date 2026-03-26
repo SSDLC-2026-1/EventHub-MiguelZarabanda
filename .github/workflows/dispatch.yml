@@ -1,0 +1,55 @@
+name: package-by-module
+
+on:
+  workflow_dispatch:
+    inputs:
+      module:
+        description: 'Select the module to package'
+        required: true
+        type: choice
+        options:
+          - frontend
+          - backend
+          - data
+          - full
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Package frontend module
+        if: inputs.module == 'frontend'
+        run: |
+          mkdir -p dist
+          zip -r dist/frontend.zip templates/ static/
+          echo "Frontend package created: dist/frontend.zip"
+
+      - name: Package backend module
+        if: inputs.module == 'backend'
+        run: |
+          mkdir -p dist
+          zip -r dist/backend.zip app.py requirements.txt
+          echo "Backend package created: dist/backend.zip"
+
+      - name: Package data module
+        if: inputs.module == 'data'
+        run: |
+          mkdir -p dist
+          zip -r dist/data.zip data/
+          echo "Data package created: dist/data.zip"
+
+      - name: Package full module
+        if: inputs.module == 'full'
+        run: |
+          mkdir -p dist
+          zip -r dist/full.zip app.py requirements.txt templates/ static/ data/
+          echo "Full package created: dist/full.zip"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.module }}-package
+          path: dist/${{ inputs.module }}.zip
