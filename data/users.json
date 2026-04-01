@@ -88,5 +88,37 @@
     },
     "role": "user",
     "status": "active"
+  },
+  {
+    "id": 6,
+    "full_name": "admon",
+    "email": "admin@eventhub.com",
+    "phone": "3338823225",
+    "password": {
+      "algorithm": "pbkdf2_sha256",
+      "iterations": 200000,
+      "salt": "7b549d7ff6d5487f5f10872a3f3702a2",
+      "hash": "1b4ed013315a89de71ae3d9b30695761f258f122fbda2b67e134583b3414ab4a"
+    },
+    "role": "user",
+    "status": "active"
+  },
+  {
+    "id": 7,
+    "full_name": "admondos",
+    "email": "admin2@eventhub.com",
+    "phone": {
+      "ciphertext": "a08814af76692e1248f4",
+      "nonce": "ad4b39f13cc729fb7c979cca486aef45",
+      "tag": "30f1dde43e94a8a1d00807405d8672bc"
+    },
+    "password": {
+      "algorithm": "pbkdf2_sha256",
+      "iterations": 200000,
+      "salt": "5bec1e38a09a20d99c6a9388455829ac",
+      "hash": "418c68ad1748fe2f5e47a2841fe8fe24fd40c5a914f4d511198b8d2c50f71d27"
+    },
+    "role": "user",
+    "status": "active"
   }
 ]

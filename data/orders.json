@@ -82,5 +82,27 @@
       },
       "card_masked": "**** **** **** 4242"
     }
+  },
+  {
+    "id": 5,
+    "user_email": "admin@eventhub.com",
+    "event_id": 1,
+    "event_title": "Summer Music Fest",
+    "qty": 1,
+    "unit_price": 75.0,
+    "service_fee": 5.0,
+    "total": 80.0,
+    "status": "PAID",
+    "created_at": "2026-04-01T18:35:36.021114",
+    "payment": {
+      "exp_date": "07/30",
+      "name_on_card": "juan",
+      "billing_email": {
+        "ciphertext": "c1cd26d2d2d3203fe37574cb",
+        "nonce": "470b27e948d2b6d76dffb14c573d82f8",
+        "tag": "a9a34053f7d23816dd4a75b11d0a6b19"
+      },
+      "card_masked": "**** **** **** 1111"
+    }
   }
 ]
