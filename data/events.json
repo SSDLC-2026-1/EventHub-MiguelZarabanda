@@ -19,7 +19,7 @@
     "city": "San Francisco",
     "venue": "Moscone Center",
     "start": "2026-10-26T09:00:00",
-    "end": "2026-10-26T17:00:00,
+    "end": "2026-10-26T17:00:00",
     "price_usd": 199.99,
     "available_tickets": 75,
     "banner_url": "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1400&q=80",
