@@ -11,7 +11,16 @@
     "status": "PAID",
     "created_at": "2026-02-11T21:26:54.969744",
     "payment": {
-      "car
+      "card_number": "000000000000000000000",
+      "exp_date": "09/23",
+      "name_on_card": "pepito",
+      "billing_email": {
+        "ciphertext": "ade69eab3fff71e3593daa77",
+        "nonce": "f02f33f8d400296e820f5ade29c85a50",
+        "tag": "1da927df96e74dba887c7c2da2a92766"
+      }
+    }
+  },
   {
     "id": 2,
     "user_email": "PLACEHOLDER@EMAIL.COM",
