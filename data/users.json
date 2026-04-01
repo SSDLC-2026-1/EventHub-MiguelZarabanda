@@ -8,15 +8,6 @@
       "nonce": "c62d170b644930a53f65a5fec2667654",
       "tag": "024527ded727b86990df0f63a8f5e6e3"
     },
-    "password": {
-      "algorithm": "pbkdf2_sha256",
-      "iterations": 200000,
-      "salt": "d96bd9a22d49796ba338aa2e44f2f912",
-      "hash": "2f5559619027cc787285b106389024d1952e3d5be5680a242730f424e4fb84eb"
-    },
-    "role": "admin",
-    "status": "active"
-  },
   {
     "id": 2,
     "full_name": "pepe perez",
