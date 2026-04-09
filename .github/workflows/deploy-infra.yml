@@ -13,7 +13,9 @@ jobs:
     env:
       AWS_REGION: us-east-1
       TF_IN_AUTOMATION: true
+      BOOTSTRAP_DIR: ./Infra/bootstrap
       TF_DIR: ./Infra/terraform
+      TF_STATE_KEY: eventhub/terraform.tfstate
 
     steps:
       - name: Checkout repository
@@ -36,19 +38,49 @@ jobs:
           cat eventhub_key.pub >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      - name: Terraform Init
-        working-directory: ${{ env.TF_DIR }}
+      - name: Terraform Init (bootstrap)
+        working-directory: ${{ env.BOOTSTRAP_DIR }}
         run: terraform init
 
-      - name: Terraform Validate
+      - name: Terraform Validate (bootstrap)
+        working-directory: ${{ env.BOOTSTRAP_DIR }}
+        run: terraform validate
+
+      - name: Terraform Plan (bootstrap)
+        working-directory: ${{ env.BOOTSTRAP_DIR }}
+        run: terraform plan -out=tfplan
+
+      - name: Terraform Apply (bootstrap)
+        working-directory: ${{ env.BOOTSTRAP_DIR }}
+        run: terraform apply -auto-approve tfplan
+
+      - name: Capture bootstrap outputs
+        working-directory: ${{ env.BOOTSTRAP_DIR }}
+        run: |
+          echo "TF_STATE_BUCKET=$(terraform output -raw state_bucket_name)" >> $GITHUB_ENV
+
+      - name: Generate backend config
+        run: |
+          cat > $TF_DIR/backend.hcl <<EOF
+          bucket       = "${TF_STATE_BUCKET}"
+          key          = "${TF_STATE_KEY}"
+          region       = "${AWS_REGION}"
+          use_lockfile = true
+          EOF
+
+      - name: Terraform Init (main)
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform init -reconfigure -backend-config=backend.hcl
+
+      - name: Terraform Validate (main)
         working-directory: ${{ env.TF_DIR }}
         run: terraform validate
 
-      - name: Terraform Plan
+      - name: Terraform Plan (main)
         working-directory: ${{ env.TF_DIR }}
         run: terraform plan -var="public_key=${PUBLIC_KEY}" -out=tfplan
 
-      - name: Terraform Apply
+      - name: Terraform Apply (main)
         working-directory: ${{ env.TF_DIR }}
         run: terraform apply -auto-approve tfplan
 
@@ -57,16 +89,21 @@ jobs:
         run: |
           echo "INSTANCE_ID=$(terraform output -raw instance_id)" >> $GITHUB_ENV
           echo "PUBLIC_IP=$(terraform output -raw public_ip)" >> $GITHUB_ENV
+          echo "APPLICATION_URL=$(terraform output -raw application_url)" >> $GITHUB_ENV
+          echo "SSH_USER=$(terraform output -raw ssh_user)" >> $GITHUB_ENV
 
-      - name: Show infrastructure outputs
+      - name: Show outputs
         run: |
+          echo "State bucket: $TF_STATE_BUCKET"
           echo "Instance ID: $INSTANCE_ID"
           echo "Public IP: $PUBLIC_IP"
+          echo "Application URL: $APPLICATION_URL"
+          echo "SSH User: $SSH_USER"
 
       - name: Wait for SSH to become available
         run: |
           for i in {1..30}; do
-            if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -i eventhub_key ec2-user@$PUBLIC_IP "echo SSH ready"; then
+            if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -i eventhub_key ${SSH_USER}@${PUBLIC_IP} "echo SSH ready"; then
               echo "SSH is ready"
               exit 0
             fi
@@ -78,25 +115,35 @@ jobs:
 
       - name: Copy application files to EC2
         run: |
-          scp -o StrictHostKeyChecking=no -i eventhub_key -r . ec2-user@$PUBLIC_IP:/opt/eventhub
+          scp -o StrictHostKeyChecking=no -i eventhub_key -r . ${SSH_USER}@${PUBLIC_IP}:/opt/eventhub
 
       - name: Install dependencies and start app
         run: |
-          ssh -o StrictHostKeyChecking=no -i eventhub_key ec2-user@$PUBLIC_IP << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i eventhub_key ${SSH_USER}@${PUBLIC_IP} << 'EOF'
             cd /opt/eventhub
-
             python3 -m pip install --upgrade pip
-            python3 -m pip install flask
-            python3 -m pip install pycryptodome
-
+            python3 -m pip install flask pycryptodome
             pkill -f "python3 app.py" || true
             nohup python3 app.py > app.log 2>&1 &
           EOF
 
       - name: Verify app process
         run: |
-          ssh -o StrictHostKeyChecking=no -i eventhub_key ec2-user@$PUBLIC_IP "ps -ef | grep app.py | grep -v grep"
+          ssh -o StrictHostKeyChecking=no -i eventhub_key ${SSH_USER}@${PUBLIC_IP} "ps -ef | grep app.py | grep -v grep"
 
-      - name: Show application URL
+      - name: Save deployment info
         run: |
-          echo "EventHub should be reachable at: http://$PUBLIC_IP:5000"
+          cat > deployment-info.txt <<EOF
+          Terraform state bucket: $TF_STATE_BUCKET
+          Terraform state key: $TF_STATE_KEY
+          Instance ID: $INSTANCE_ID
+          Public IP: $PUBLIC_IP
+          Application URL: $APPLICATION_URL
+          SSH User: $SSH_USER
+          EOF
+
+      - name: Upload deployment info artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: eventhub-deployment-info
+          path: deployment-info.txt
