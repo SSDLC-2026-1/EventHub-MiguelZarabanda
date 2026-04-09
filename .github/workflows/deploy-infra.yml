@@ -68,11 +68,6 @@ jobs:
         working-directory: ${{ env.BOOTSTRAP_DIR }}
         run: terraform apply -auto-approve tfplan
 
-      - name: Capture bootstrap outputs
-        working-directory: ${{ env.BOOTSTRAP_DIR }}
-        run: |
-          echo "TF_STATE_BUCKET=$(terraform output -raw state_bucket_name)" >> $GITHUB_ENV
-
       - name: Generate backend config
         run: |
           cat > $TF_DIR/backend.hcl <<EOF
