@@ -16,6 +16,7 @@ jobs:
       BOOTSTRAP_DIR: ./Infra/bootstrap
       TF_DIR: ./Infra/terraform
       TF_STATE_KEY: eventhub/terraform.tfstate
+      TF_STATE_BUCKET: eventhub-terraform-state-sara-palacios-2026
 
     steps:
       - name: Checkout repository
@@ -31,6 +32,15 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Check if state bucket exists
+        id: check_bucket
+        run: |
+            if aws s3api head-bucket --bucket "eventhub-terraform-state-sara-palacios-2026" 2>/dev/null; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            fi
+
       - name: Generate temporary SSH key pair
         run: |
           ssh-keygen -t rsa -b 4096 -f eventhub_key -N ""
@@ -39,18 +49,22 @@ jobs:
           echo "EOF" >> $GITHUB_ENV
 
       - name: Terraform Init (bootstrap)
+        if: steps.check_bucket.outputs.exists == 'false'
         working-directory: ${{ env.BOOTSTRAP_DIR }}
         run: terraform init
 
       - name: Terraform Validate (bootstrap)
+        if: steps.check_bucket.outputs.exists == 'false'
         working-directory: ${{ env.BOOTSTRAP_DIR }}
         run: terraform validate
 
       - name: Terraform Plan (bootstrap)
+        if: steps.check_bucket.outputs.exists == 'false'
         working-directory: ${{ env.BOOTSTRAP_DIR }}
         run: terraform plan -out=tfplan
 
       - name: Terraform Apply (bootstrap)
+        if: steps.check_bucket.outputs.exists == 'false'    
         working-directory: ${{ env.BOOTSTRAP_DIR }}
         run: terraform apply -auto-approve tfplan
 
