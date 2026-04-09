@@ -49,7 +49,7 @@ jobs:
           PRIVATE_EXISTS=true
           PUBLIC_EXISTS=true
 
-          aws secretsmanager describe-secret --secret-id "$PRIVATE_SECRET_NAME" --region $AWS_REGION \>/dev/null 2>&1 || PRIVATE_EXISTS=false
+          aws secretsmanager describe-secret --secret-id "$PRIVATE_SECRET_NAME" --region $AWS_REGION >/dev/null 2>&1 || PRIVATE_EXISTS=false
           aws secretsmanager describe-secret --secret-id "$PUBLIC_SECRET_NAME" --region $AWS_REGION >/dev/null 2>&1 || PUBLIC_EXISTS=false
 
           if [ "$PRIVATE_EXISTS" = false ] || [ "$PUBLIC_EXISTS" = false ]; then
