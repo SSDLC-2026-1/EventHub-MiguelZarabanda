@@ -73,7 +73,7 @@ def validate_register_form(
     phone: str,
     password: str,
     confirm_password: str,
-    agree: str | None,
+    agree: str,
     email_exists_checker: Callable[[str], bool],
 ) -> Tuple[Dict, Dict]:
     clean: Dict[str, str] = {}
